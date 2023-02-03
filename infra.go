@@ -56,4 +56,18 @@ func main() {
 		fmt.Printf("Deployment %s is %s\n", deployment.Name, map[bool]string{true: "ready", false: "not ready"}[ready])
 	}
 
+	// Check the readiness of services
+	services, err := clientset.CoreV1().Services("").List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if services.Items == nil {
+		log.Println("No services found")
+		return
+	}
+	for _, service := range services.Items {
+		// Check if the service is ready
+		ready := service.Spec.ClusterIP != ""
+		fmt.Printf("Service %s is %s\n", service.Name, map[bool]string{true: "ready", false: "not ready"}[ready])
+	}
 }
