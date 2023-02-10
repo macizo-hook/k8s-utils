@@ -66,8 +66,18 @@ func main() {
 		return
 	}
 	for _, service := range services.Items {
+
 		// Check if the service is ready
 		ready := service.Spec.ClusterIP != ""
 		fmt.Printf("Service %s is %s\n", service.Name, map[bool]string{true: "ready", false: "not ready"}[ready])
+
+		// Check the readiness of endpoints
+		endpoints, err := clientset.CoreV1().Endpoints(service.Namespace).Get(context.TODO(), service.Name, metav1.GetOptions{})
+		if err != nil {
+			log.Printf("Failed to get endpoints for service %s: %v", service.Name, err)
+			continue
+		}
+		ready = len(endpoints.Subsets) > 0
+		fmt.Printf("Endpoints of service %s are %s\n", service.Name, map[bool]string{true: "ready", false: "not ready"}[ready])
 	}
 }
